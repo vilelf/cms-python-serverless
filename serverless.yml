@@ -5,3 +5,13 @@ frameworkVersion: ">=1.2.0 <2.0.0"
 provider:
   name: aws
   runtime: python3.7
+
+plugins:
+  - serverless-offline
+
+functions:
+  app:
+    handler: handler.hello
+    events:
+      - http: ANY /
+      - http: 'ANY {proxy+}'

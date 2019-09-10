@@ -6,6 +6,7 @@
   "author": "Fabrício Vilela <vilelf.dev@gmail.com>",
   "license": "MIT",
   "dependencies": {
-    "serverless": "^1.51.0"
+    "serverless": "^1.51.0",
+    "serverless-offline": "^5.10.1"
   }
 }
