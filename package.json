@@ -1,0 +1,12 @@
+{
+  "name": "cms-python-serverless",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "https://github.com/vilelf/cms-python-serverless.git",
+  "author": "Fabrício Vilela <vilelf.dev@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "serverless": "^1.51.0",
+    "serverless-offline": "^5.10.1"
+  }
+}
