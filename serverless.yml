@@ -11,7 +11,7 @@ plugins:
 
 functions:
   app:
-    handler: handler.hello
+    handler: functions/hello/main.hello
     events:
       - http: ANY /
       - http: 'ANY {proxy+}'
