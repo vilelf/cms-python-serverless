@@ -3,12 +3,28 @@ defaults: &defaults
     - image: circleci/python:3.7
   working_directory: ~/repo
 
+checkout_steps: &checkout_steps
+  - restore_cache: &checkout_restore_cache
+      name: Restore source .git cache
+      keys:
+        - source-v1-{{ .Branch }}-{{ .Revision }}
+        - source-v1-{{ .Branch }}-
+        - source-v1-
+  - checkout
+  - save_cache: &checkout_save_cache
+      name: Save source .git cache
+      key: source-v1-{{ .Branch }}-{{ .Revision }}
+      paths:
+        - ".git"
+
 version: 2
 jobs:
   test:
     <<: *defaults
     steps:
+      - restore_cache: *checkout_restore_cache
       - checkout
+      - save_cache: *checkout_save_cache
       - restore_cache:
           key: vilelf-{{ .Branch }}-{{ checksum "Pipfile.lock" }}
       - run:
