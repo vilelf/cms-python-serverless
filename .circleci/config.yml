@@ -25,6 +25,7 @@ jobs:
       - run:
           name: Run tests
           command: |
+            pipenv shell
             nosetests
 
 workflows:
