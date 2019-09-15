@@ -1,8 +1,36 @@
+defaults: &defaults
+  docker:
+    - image: circleci/python:3.7
+
 version: 2
 jobs:
+  test:
+    <<: *defaults
+    steps:
+      - checkout
+      - restore_cache:
+          key: vilelf-{{ .Branch }}-{{ checksum "Pipfile.lock" }}
+      - run:
+          name: Install dependencies
+          command: |
+            sudo pip install pipenv
+            pipenv install
+      - save_cache:
+          key: vilelf-{{ .Branch }}-{{ checksum "Pipfile.lock" }}
+          paths:
+            - ".venv"
+            - "/usr/local/bin"
+            - "/usr/local/lib/python3.7/site-packages"
+      - run:
+          name: Run tests
+          command: |
+            nosetests
+
   build:
-    docker:
-      - image: circleci/python:3.7
     steps:
       - checkout
       - run: echo "A first hello"
+workflows:
+  version: 2
+  deploy:
+    - test
