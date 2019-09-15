@@ -7,13 +7,12 @@ checkout_steps: &checkout_steps
   - restore_cache: &checkout_restore_cache
       name: Restore source .git cache
       keys:
-        - source-v1-{{ .Branch }}-{{ .Revision }}
-        - source-v1-{{ .Branch }}-
+        - source-v1-{{ .Revision }}
         - source-v1-
   - checkout
   - save_cache: &checkout_save_cache
       name: Save source .git cache
-      key: source-v1-{{ .Branch }}-{{ .Revision }}
+      key: source-v1-{{ .Revision }}
       paths:
         - ".git"
 
@@ -26,14 +25,16 @@ jobs:
       - checkout
       - save_cache: *checkout_save_cache
       - restore_cache:
-          key: vilelf-{{ .Branch }}-{{ checksum "Pipfile.lock" }}
+          keys:
+            - vilelf-{{ checksum "Pipfile.lock" }}
+            - vilelf-
       - run:
           name: Install dependencies
           command: |
             sudo pip install pipenv
             pipenv install
       - save_cache:
-          key: vilelf-{{ .Branch }}-{{ checksum "Pipfile.lock" }}
+          key: vilelf-{{ checksum "Pipfile.lock" }}
           paths:
             - ".venv"
             - "/usr/local/bin"
@@ -43,6 +44,11 @@ jobs:
           command: |
             pipenv shell
             nosetests
+      - store_artifacts:
+          path: tmp
+
+      - store_test_results:
+          path: tmp
 
 workflows:
   version: 2
