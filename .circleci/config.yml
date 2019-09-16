@@ -12,7 +12,9 @@ checkout_steps: &checkout_steps
   - checkout
   - save_cache: &checkout_save_cache
       name: Save source .git cache
-      key: vilelf-{{ .Revision }}
+      keys:
+        - vilelf-{{ .Revision }}
+        - vilelf-
       paths:
         - ".git"
 
