@@ -7,12 +7,12 @@ checkout_steps: &checkout_steps
   - restore_cache: &checkout_restore_cache
       name: Restore source .git cache
       keys:
-        - source-v1-{{ .Revision }}
-        - source-v1-
+        - vilelf-{{ .Revision }}
+        - vilelf-
   - checkout
   - save_cache: &checkout_save_cache
       name: Save source .git cache
-      key: source-v1-{{ .Revision }}
+      key: vilelf-{{ .Revision }}
       paths:
         - ".git"
 
