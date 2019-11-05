@@ -1,0 +1,80 @@
+defaults: &defaults
+  docker:
+    - image: circleci/python:3.7
+
+checkout_code_steps:
+  - restore_cache: &restore_code_cache
+      keys:
+        - source-{{ .Branch }}-{{ .Revision }}
+        - source-{{ .Branch }}-
+        - source-
+  - save_cache: &save_code_cache
+      key: source-{{ .Branch }}-{{ .Revision }}
+      paths:
+        - ".git"
+install_python_dependencies:
+  - restore_cache: &restore_python_dependencies
+      name: Restore source pip cache for Pipfile.lock
+      keys:
+        - dependencies-pip-{{ checksum "Pipfile.lock" }}
+        - dependencies-pip-{{ checksum "Pipfile.lock" }}
+        - dependencies-pip-
+  - run: &install_python_dependencies
+      name: Install dependencies
+      command: |
+        pipenv install
+  - save_cache: &save_python_dependencies_cache
+      name: Save source pip cache for Pipfile.lock
+      paths:
+        - ./venv
+      key: dependencies-pip-{{ checksum "Pipfile.lock" }}
+install_npm_depencencies:
+  - restore_cache: &restore_npm_dependencies
+      name: Restore cache for package.json
+      keys:
+        - dependencies-node-{{ checksum "package.json" }}
+        - dependencies-node-
+  - run: &install_npm
+      name: Install node and npm
+      command: |
+        curl -sL https://deb.nodesource.com/setup_10.x | sudo -E bash -
+        sudo apt-get install -y nodejs
+        node --version && npm -v
+  - run: &install_npm_dependencies
+      name: Install Serverless CLI and dependencies
+      command: |
+          sudo npm i -g serverless
+          npm install
+  - save_cache: &save_npm_dependencies_cache
+      paths:
+        - node_modules
+      key: dependencies-node-{{ checksum "package.json" }}
+
+version: 2
+jobs:
+  test:
+    <<: *defaults
+    steps:
+      - restore_cache: *restore_code_cache
+      - checkout
+      - save_cache: *save_code_cache
+      - restore_cache: *restore_python_dependencies
+      - run: *install_python_dependencies
+      - save_cache: *save_python_dependencies_cache
+      - run:
+          name: Run tests
+          command: |
+            export AWS_DEFAULT_REGION=us-east-1
+            source $(pipenv --venv)/bin/activate
+            pipenv sync
+            nosetests
+      - store_artifacts:
+          path: tmp
+      - store_test_results:
+          path: tmp
+
+workflows:
+  version: 2
+  validation:
+    jobs:
+      - test

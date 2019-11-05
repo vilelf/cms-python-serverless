@@ -1,9 +1,10 @@
+import json
 import unittest
-from functions.hello import hello
+from functions.hello.main import hello
 
 
-class TestHelloHandler(unittest.TestCase):
+class HelloHandlerTest(unittest.TestCase):
     def test_hello(self):
-        expected = 'Hello world, serverless!!'
-        actual = hello({}, {})
+        expected = '{"message": "Hello world, serverless!!"}'
+        actual = hello({}, {})['body']
         self.assertEqual(actual, expected)
