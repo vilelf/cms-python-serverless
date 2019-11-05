@@ -1,25 +1,108 @@
 defaults: &defaults
   docker:
     - image: circleci/python:3.7
-  working_directory: ~/repo
+
+checkout_code_steps:
+  - restore_cache: &restore_code_cache
+      keys:
+        - source-{{ .Branch }}-{{ .Revision }}
+        - source-{{ .Branch }}-
+        - source-
+  - save_cache: &save_code_cache
+      key: source-{{ .Branch }}-{{ .Revision }}
+      paths:
+        - ".git"
+install_python_dependencies:
+  - restore_cache: &restore_python_dependencies
+      name: Restore source pip cache for requirements.txt
+      keys:
+        - dependencies-pip-{{ checksum "Pipfile.lock" }}
+        - dependencies-pip-{{ checksum "Pipfile.lock" }}
+        - dependencies-pip-
+  - run: &install_python_dependencies
+      name: Install dependencies
+      command: |
+        python -m virtualenv venv
+        source venv/bin/activate
+        pip install -r requirements.txt
+  - save_cache: &save_python_dependencies_cache
+      name: Save source pip cache for requirements.txt
+      paths:
+        - ./venv
+      key: dependencies-pip-{{ checksum "requirements.txt" }}
+install_npm_depencencies:
+  - restore_cache: &restore_npm_dependencies
+      name: Restore cache for package.json
+      keys:
+        - dependencies-node-{{ checksum "package.json" }}
+        - dependencies-node-
+  - run: &install_npm
+      name: Install node and npm
+      command: |
+        curl -sL https://deb.nodesource.com/setup_10.x | sudo -E bash -
+        sudo apt-get install -y nodejs
+        node --version && npm -v
+  - run: &install_npm_dependencies
+      name: Install Serverless CLI and dependencies
+      command: |
+          sudo npm i -g serverless
+          npm install
+  - save_cache: &save_npm_dependencies_cache
+      paths:
+        - node_modules
+      key: dependencies-node-{{ checksum "package.json" }}
+
+# deploy-base: &deploy-base
+#   <<: *defaults
+
+#   steps:
+#     - restore_cache: *restore_code_cache
+#     - checkout
+#     - save_cache: *save_code_cache
+#     - restore_cache: *restore_python_dependencies
+#     - run: *install_python_dependencies
+#     - save_cache: *save_python_dependencies_cache
+#     - restore_cache: *restore_npm_dependencies
+#     - run: *install_npm
+#     - run: *install_npm_dependencies
+#     - save_cache: *save_npm_dependencies_cache
+#     - run:
+#         name: Copiando myConf
+#         command: |
+#           cp myConf.yml.template myConf.yml
+#     - run:
+#         name: Run serverless create_domain
+#         command: |
+#           sls create_domain -v --stage $SLS_STAGE
+#     - run:
+#         name: Run serverless deploy
+#         command: |
+#           sls deploy -v --stage $SLS_STAGE
 
 version: 2
 jobs:
-  build:
-    docker:
-      - image: circleci/python:3.7
+  test:
+    <<: *defaults
     steps:
+      - restore_cache: *restore_code_cache
       - checkout
-      - run: yarn
-      - save_cache:
-          key: npm-cache-{{ .Branch }}-{{ checksum "package.json" }}
-          paths:
-            - node_modules
-
-
+      - save_cache: *save_code_cache
+      - restore_cache: *restore_python_dependencies
+      - run: *install_python_dependencies
+      - save_cache: *save_python_dependencies_cache
+      - run:
+          name: Run tests
+          command: |
+            export AWS_DEFAULT_REGION=us-east-1
+            source venv/bin/activate
+            nosetests
+      - store_artifacts:
+          path: tmp
+      - store_test_results:
+          path: tmp
 
 workflows:
   version: 2
   validation:
     jobs:
-      - build
+      - test
