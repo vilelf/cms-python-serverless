@@ -14,7 +14,7 @@ checkout_code_steps:
         - ".git"
 install_python_dependencies:
   - restore_cache: &restore_python_dependencies
-      name: Restore source pip cache for requirements.txt
+      name: Restore source pip cache for Pipfile.lock
       keys:
         - dependencies-pip-{{ checksum "Pipfile.lock" }}
         - dependencies-pip-{{ checksum "Pipfile.lock" }}
@@ -22,14 +22,13 @@ install_python_dependencies:
   - run: &install_python_dependencies
       name: Install dependencies
       command: |
-        python -m virtualenv venv
-        source venv/bin/activate
-        pip install -r requirements.txt
+        pip install pipenv
+        pipenv shell
   - save_cache: &save_python_dependencies_cache
-      name: Save source pip cache for requirements.txt
+      name: Save source pip cache for Pipfile.lock
       paths:
         - ./venv
-      key: dependencies-pip-{{ checksum "requirements.txt" }}
+      key: dependencies-pip-{{ checksum "Pipfile.lock" }}
 install_npm_depencencies:
   - restore_cache: &restore_npm_dependencies
       name: Restore cache for package.json
@@ -52,33 +51,6 @@ install_npm_depencencies:
         - node_modules
       key: dependencies-node-{{ checksum "package.json" }}
 
-# deploy-base: &deploy-base
-#   <<: *defaults
-
-#   steps:
-#     - restore_cache: *restore_code_cache
-#     - checkout
-#     - save_cache: *save_code_cache
-#     - restore_cache: *restore_python_dependencies
-#     - run: *install_python_dependencies
-#     - save_cache: *save_python_dependencies_cache
-#     - restore_cache: *restore_npm_dependencies
-#     - run: *install_npm
-#     - run: *install_npm_dependencies
-#     - save_cache: *save_npm_dependencies_cache
-#     - run:
-#         name: Copiando myConf
-#         command: |
-#           cp myConf.yml.template myConf.yml
-#     - run:
-#         name: Run serverless create_domain
-#         command: |
-#           sls create_domain -v --stage $SLS_STAGE
-#     - run:
-#         name: Run serverless deploy
-#         command: |
-#           sls deploy -v --stage $SLS_STAGE
-
 version: 2
 jobs:
   test:
@@ -94,7 +66,7 @@ jobs:
           name: Run tests
           command: |
             export AWS_DEFAULT_REGION=us-east-1
-            source venv/bin/activate
+            pipenv shell
             nosetests
       - store_artifacts:
           path: tmp
