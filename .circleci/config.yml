@@ -66,6 +66,7 @@ jobs:
           command: |
             export AWS_DEFAULT_REGION=us-east-1
             source $(pipenv --venv)/bin/activate
+            pipenv sync
             nosetests
       - store_artifacts:
           path: tmp
