@@ -22,7 +22,7 @@ install_python_dependencies:
   - run: &install_python_dependencies
       name: Install dependencies
       command: |
-        pipenv sync
+        pipenv install
   - save_cache: &save_python_dependencies_cache
       name: Save source pip cache for Pipfile.lock
       paths:
