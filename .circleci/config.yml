@@ -3,57 +3,23 @@ defaults: &defaults
     - image: circleci/python:3.7
   working_directory: ~/repo
 
-checkout_steps: &checkout_steps
-  - restore_cache: &checkout_restore_cache
-      name: Restore source .git cache
-      keys:
-        - vilelf-{{ .Revision }}
-        - vilelf-
-  - checkout
-  - save_cache: &checkout_save_cache
-      name: Save source .git cache
-      keys:
-        - vilelf-{{ .Revision }}
-        - vilelf-
-      paths:
-        - ".git"
-
 version: 2
 jobs:
-  test:
-    <<: *defaults
+  build:
+    docker:
+      - image: circleci/python:3.7
     steps:
-      - restore_cache: *checkout_restore_cache
       - checkout
-      - save_cache: *checkout_save_cache
-      - restore_cache:
-          keys:
-            - vilelf-{{ checksum "Pipfile.lock" }}
-            - vilelf-
-      - run:
-          name: Install dependencies
-          command: |
-            sudo pip install pipenv
-            pipenv install
+      - run: yarn
       - save_cache:
-          key: vilelf-{{ checksum "Pipfile.lock" }}
+          key: npm-cache-{{ .Branch }}-{{ checksum "package.json" }}
           paths:
-            - ".venv"
-            - "/usr/local/bin"
-            - "/usr/local/lib/python3.7/site-packages"
-      - run:
-          name: Run tests
-          command: |
-            pipenv shell
-            nosetests
-      - store_artifacts:
-          path: tmp
+            - node_modules
 
-      - store_test_results:
-          path: tmp
+
 
 workflows:
   version: 2
   validation:
     jobs:
-      - test
+      - build
