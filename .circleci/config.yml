@@ -64,7 +64,6 @@ jobs:
       - run:
           name: Run tests
           command: |
-            export AWS_DEFAULT_REGION=us-east-1
             source $(pipenv --venv)/bin/activate
             pipenv sync
             nosetests
