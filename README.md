@@ -1,1 +1,1 @@
-# cms-python-serverless
+# python-serverless-template
