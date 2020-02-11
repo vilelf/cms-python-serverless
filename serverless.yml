@@ -1,4 +1,4 @@
-service: cms-python-serverless
+service: python-serverless-template
 
 frameworkVersion: ">=1.2.0 <2.0.0"
 
