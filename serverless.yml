@@ -1,4 +1,4 @@
-service: cms-python-serverless
+service: python-serverless-template
 
 frameworkVersion: ">=1.2.0 <2.0.0"
 
@@ -8,6 +8,7 @@ provider:
 
 plugins:
   - serverless-offline
+  - serverless-python-requirements
 
 functions:
   app:
